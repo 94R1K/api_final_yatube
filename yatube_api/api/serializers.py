@@ -1,16 +1,19 @@
-from posts.models import Comment, Follow, Group, Post, User
-from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.serializers import (CurrentUserDefault, ModelSerializer,
+                                        ValidationError)
+from rest_framework.validators import UniqueTogetherValidator
+
+from posts.models import Comment, Follow, Group, Post, User
 
 
-class GroupSerializer(serializers.ModelSerializer):
+class GroupSerializer(ModelSerializer):
 
     class Meta:
         fields = ('id', 'title', 'slug', 'description')
         model = Group
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(ModelSerializer):
     author = SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
@@ -18,7 +21,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(ModelSerializer):
     author = SlugRelatedField(read_only=True, slug_field='username')
 
     class Meta:
@@ -26,22 +29,25 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-class FollowSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField(read_only=True, slug_field='username')
+class FollowSerializer(ModelSerializer):
+    user = SlugRelatedField(read_only=True, slug_field='username',
+                            default=CurrentUserDefault())
     following = SlugRelatedField(
         queryset=User.objects.all(), slug_field='username')
 
     class Meta:
         fields = ('user', 'following')
         model = Follow
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=['user', 'following'],
+                message='Такая подписка уже существует!!!'
+            )
+        ]
 
-    def create(self, validated_data):
-        if self.is_valid():
-            if validated_data['following'] == validated_data['user']:
-                raise serializers.ValidationError('Нельзя подписаться на '
-                                                  'самого себя!!!')
-            if Follow.objects.filter(**validated_data).exists():
-                raise serializers.ValidationError(
-                    'Такая подписка уже существует!!!'
-                )
-        return Follow.objects.create(**validated_data)
+    def validate_following(self, value):
+        if self.context['request'].user == value:
+            raise ValidationError('Неверный запрос. '
+                  'Попытка подписки на себя.')
+        return value
