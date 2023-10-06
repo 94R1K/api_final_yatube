@@ -125,3 +125,12 @@ http://127.0.0.1:8000/api/v1/posts/{post_id}/comments/
   "created": "2019-08-24T14:15:22Z",
   "post": 0
 }
+```
+# Об авторе
+Лошкарев Ярослав Эдуардович \
+Python-разработчик (Backend) \
+Россия, г. Москва \
+E-mail: real-man228@yandex.ru 
+
+[![VK](https://img.shields.io/badge/Вконтакте-%232E87FB.svg?&style=for-the-badge&logo=vk&logoColor=white)](https://vk.com/yalluv)
+[![TG](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/yallluv)
